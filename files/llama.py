@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import datetime
 import sqlite3
 import json
 import os
@@ -9,7 +10,7 @@ import sys
 import ollama
 import uuid
 
-# === ANSI COLORS ===
+# ANSI COLORS 
 RESET = "\033[0m"
 BOLD = "\033[1m"
 RED = "\033[31m"
@@ -23,7 +24,7 @@ BGREEN = "\033[92m"
 BYELLOW = "\033[93m"
 BCYAN = "\033[96m"
 
-# === CONFIG ===
+#  CONFIG 
 DB_PATH = "ollama_memory.db"
 CONFIG_FILE = "config.json"
 MAX_CONTEXT = 5
@@ -44,14 +45,11 @@ def save_config(model):
     with open(CONFIG_FILE, 'w') as f:
         json.dump({'model': model}, f, indent=2)
 
-# === DYNAMIC MODEL ===
 MODEL = load_config()
 
-# === ENABLE ANSI ON WINDOWS ===
 if os.name == 'nt':
     os.system('')
 
-# === GLOBAL EXIT & MODEL STOP ===
 def is_exit(cmd):
     return cmd.strip().lower() in ['exit', 'quit', 'q', 'bye']
 
@@ -83,7 +81,6 @@ def safe_input(prompt):
 
 signal.signal(signal.SIGINT, lambda sig, frame: safe_input(''))
 
-# === INIT DB ===
 def init_db():
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
@@ -110,7 +107,6 @@ def init_db():
     conn.commit()
     conn.close()
 
-# === SESSION NAME HELPERS ===
 def get_session_name(session_id):
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
@@ -132,8 +128,7 @@ def delete_session_name(session_id):
     cur.execute('DELETE FROM session_names WHERE session_id = ?', (session_id,))
     conn.commit()
     conn.close()
-
-# === LOG MESSAGE ===
+    
 def log_message(session_id, role, content, model=MODEL):
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
@@ -144,7 +139,6 @@ def log_message(session_id, role, content, model=MODEL):
     conn.commit()
     conn.close()
 
-# === GET CONTEXT ===
 def get_context(session_id, limit=MAX_CONTEXT):
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
@@ -158,7 +152,6 @@ def get_context(session_id, limit=MAX_CONTEXT):
     conn.close()
     return [{'role': r, 'content': c} for r, c in rows]
 
-# === CHAT WITH MEMORY ===
 def chat_with_memory(prompt, session_id):
     context = get_context(session_id)
     context.append({'role': 'user', 'content': prompt})
@@ -172,7 +165,6 @@ def chat_with_memory(prompt, session_id):
     log_message(session_id, 'assistant', answer)
     return answer, session_id
 
-# === SESSION SIZE ===
 def get_session_size(session_id):
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
@@ -194,7 +186,6 @@ def format_size(bytes_size):
     else:
         return f"{bytes_size} B"
 
-# === CLEAN OLLAMA REPLY ===
 def clean_reply(reply):
     reply = reply.strip()
     lines = reply.splitlines()
@@ -217,7 +208,6 @@ def clean_reply(reply):
         cleaned_lines.pop()
     return '\n'.join(cleaned_lines)
 
-# === LIST AVAILABLE MODELS ===
 def list_available_models():
     try:
         result = subprocess.run(['ollama', 'list'], capture_output=True, text=True)
@@ -229,7 +219,6 @@ def list_available_models():
         return []
     
     
-# === SET MODEL MENU ===
 def set_model_menu():
     global MODEL
     print(f"\n{BOLD}Available Models:{RESET}")
@@ -266,7 +255,6 @@ def set_model_menu():
         os.execl(sys.executable, sys.executable, *sys.argv)
     input(f"{BCYAN}Press Enter...{RESET}")
     
-# === SET MODEL MENU ===
 def set_model_menu():
     global MODEL
     print(f"\n{BOLD}Available Models:{RESET}")
@@ -303,7 +291,6 @@ def set_model_menu():
         os.execl(sys.executable, sys.executable, *sys.argv)
     input(f"{BCYAN}Press Enter...{RESET}")
 
-# === EDIT SESSIONS (REPLACES LIST SESSIONS) ===
 def list_sessions():
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
@@ -389,7 +376,7 @@ def list_sessions():
         print(f"{BRED}Invalid input. Use: rename 1, delete 2, 3, new, back{RESET}")
         input(f"{BCYAN}Press Enter...{RESET}")
         return None
-# === SEARCH LOGS ===
+
 def search_logs():
     query = safe_input(f"{BCYAN}\nSearch query (or 'exit'): {RESET}")
     if not query:
@@ -433,7 +420,6 @@ def search_logs():
             input(f"{BCYAN}Press Enter...{RESET}")
     return None
 
-# === EXPORT SESSION ===
 def export_session():
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
@@ -496,7 +482,6 @@ def export_session():
             f.write(f"{content}\n\n")
     print(f"{BGREEN}Exported: {filename}{RESET}")
 
-# === MAIN MENU ===
 def main_menu():
     global MODEL
     init_db()
@@ -570,7 +555,6 @@ def main_menu():
         else:
             print(f"{BRED}Invalid choice.{RESET}")
 
-# === RUN ===
 if __name__ == "__main__":
     try:
         ollama.list()
