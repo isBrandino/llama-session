@@ -1,0 +1,11 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[codz]
+*$py.class
+
+/files/.venv/
+/files/venv/
+/files/env/
+/files/.env/
+config.json
+ollama_memory.json
