@@ -1,5 +1,6 @@
 # llamaTest
 This repository contains the codebase for my llamaTest project. The program is a session store for ollama
+<img width="958" height="623" alt="app" src="https://github.com/user-attachments/assets/d1f11579-2b25-4492-a3fe-61c43179cb01" />
 
 ## Getting Started (Only Tested on Lunix so far)
 To run this program you will need ollama installed on your machine.
@@ -20,5 +21,5 @@ We welcome contributions from the community! If you'd like to contribute to this
 3. Submit a pull request with a detailed description of your changes
 
 ## License
-
 This project is licensed under the [MIT License](LICENSE).
+
