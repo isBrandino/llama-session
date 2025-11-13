@@ -1,7 +1,7 @@
 #!/bin/bash
 alias llama="$PWD/run.sh"
-./files/edit.sh
-./files/edit.sh ollama
-./files/edit.sh uuid
-./files/edit.sh ./llama.py
+$PWD/files/edit.sh
+$PWD/files/edit.sh ollama
+$PWD/files/edit.sh uuid
+$PWD/files/edit.sh ./llama.py
 
