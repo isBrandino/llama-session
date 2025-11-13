@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import datetime
+from datetime import datetime
 import sqlite3
 import json
 import os
@@ -8,7 +8,7 @@ import signal
 import json
 import sys
 import ollama
-import uuid
+import re
 
 # ANSI COLORS 
 RESET = "\033[0m"
@@ -421,6 +421,18 @@ def search_logs():
             input(f"{BCYAN}Press Enter...{RESET}")
     return None
 
+
+
+def sanitize_filename(name):
+    # Remove invalid characters
+    name = re.sub(r'[<>:"/\\|?*]', '', name)
+    # Replace spaces and multiple dashes with single underscore
+    name = re.sub(r'\s+', '_', name)
+    name = re.sub(r'_+', '_', name)
+    # Trim and limit length
+    name = name.strip('_')[:50]
+    return name or "unnamed"
+
 # Export chat data to markdown
 def export_session():
     conn = sqlite3.connect(DB_PATH)
@@ -472,7 +484,9 @@ def export_session():
         return
 
     name = get_session_name(session_id) or session_id[:8]
-    filename = f"chat_{name}_{datetime.now().strftime('%Y%m%d_%H%M')}.md"
+    safe_name = sanitize_filename(name)
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M')
+    filename = f"chat_{safe_name}_{timestamp}.md"
     filename = filename.replace(' ', '_')
     with open(filename, "w", encoding="utf-8") as f:
         f.write(f"# Ollama Chat Export\n")
