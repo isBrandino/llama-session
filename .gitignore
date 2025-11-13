@@ -7,5 +7,6 @@ __pycache__/
 /files/venv/
 /files/env/
 /files/.env/
-config.json
-ollama_memory.json
+/config.json
+/ollama_memory.db
+/chat**.db

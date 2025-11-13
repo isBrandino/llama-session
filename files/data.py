@@ -7,8 +7,8 @@ import subprocess
 import signal
 import json
 import sys
-import ollama
-import re
+import ollama # type: ignore
+import uuid
 
 # ANSI COLORS 
 RESET = "\033[0m"
@@ -64,22 +64,39 @@ def stop_ollama_model(model_name):
     except Exception as e:
         print(f"{BRED}Error stopping model: {e}{RESET}")
 
-def safe_input(prompt):
+#  SIGNAL HANDLING – For graceful shutdown
+_SHUTDOWN_REQUESTED = False
+
+def _sigint_handler(sig, frame):
+    global _SHUTDOWN_REQUESTED
+    _SHUTDOWN_REQUESTED = True
+    print()
+    print(f"{BYELLOW}Interrupted – type 'exit' or press Ctrl‑D to quit.{RESET}")
+
+signal.signal(signal.SIGINT, _sigint_handler)
+
+def _do_safe_exit():
+    print(f"\n{BYELLOW}Stopping model and exiting...{RESET}")
+    stop_ollama_model(MODEL)
+    print(f"{BYELLOW}Goodbye!{RESET}")
+    sys.exit(0)
+    
+def safe_input(prompt=""):
+    global _SHUTDOWN_REQUESTED
+    # If the user pressed Ctrl‑C before exit immediately
+    if _SHUTDOWN_REQUESTED:
+        _do_safe_exit()
     try:
         user_input = input(prompt).strip()
-        if is_exit(user_input):
-            print(f"{BYELLOW}Stopping model and exiting...{RESET}")
-            stop_ollama_model(MODEL)
-            print(f"{BYELLOW}Goodbye!{RESET}")
-            sys.exit(0)
-        return user_input
-    except (EOFError, KeyboardInterrupt):
-        print(f"\n{BYELLOW}Stopping model and exiting...{RESET}")
-        stop_ollama_model(MODEL)
-        print(f"{BYELLOW}Goodbye!{RESET}")
-        sys.exit(0)
-
-signal.signal(signal.SIGINT, lambda sig, frame: safe_input(''))
+    except EOFError:
+        # Ctrl‑D on a clean line treat as exit
+        _do_safe_exit()
+    except KeyboardInterrupt:
+        _do_safe_exit()
+    if is_exit(user_input):
+        _do_safe_exit()
+    _SHUTDOWN_REQUESTED = False
+    return user_input
 
 def init_db():
     conn = sqlite3.connect(DB_PATH)
@@ -421,18 +438,6 @@ def search_logs():
             input(f"{BCYAN}Press Enter...{RESET}")
     return None
 
-
-
-def sanitize_filename(name):
-    # Remove invalid characters
-    name = re.sub(r'[<>:"/\\|?*]', '', name)
-    # Replace spaces and multiple dashes with single underscore
-    name = re.sub(r'\s+', '_', name)
-    name = re.sub(r'_+', '_', name)
-    # Trim and limit length
-    name = name.strip('_')[:50]
-    return name or "unnamed"
-
 # Export chat data to markdown
 def export_session():
     conn = sqlite3.connect(DB_PATH)
@@ -484,9 +489,7 @@ def export_session():
         return
 
     name = get_session_name(session_id) or session_id[:8]
-    safe_name = sanitize_filename(name)
-    timestamp = datetime.now().strftime('%Y%m%d_%H%M')
-    filename = f"chat_{safe_name}_{timestamp}.md"
+    filename = f"chat_{name}_{datetime.now().strftime('%Y%m%d_%H%M')}.md"
     filename = filename.replace(' ', '_')
     with open(filename, "w", encoding="utf-8") as f:
         f.write(f"# Ollama Chat Export\n")
