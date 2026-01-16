@@ -1,7 +1,7 @@
 #!/bin/bash
-alias llama="$PWD/run.sh"
+alias llama="$(pwd)/run.sh"
 files/.venv/bin/python -m ensurepip --upgrade || files/.venv/bin/python -m pip install --upgrade pip setuptools wheel
-$PWD/files/edit.sh
-$PWD/files/edit.sh ollama
-$PWD/files/edit.sh uuid
-$PWD/files/edit.sh ./llama.py
+$(pwd)/files/edit.sh
+$(pwd)/files/edit.sh ollama
+$(pwd)/files/edit.sh uuid
+$(pwd)/files/edit.sh ./llama.py

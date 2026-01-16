@@ -1,6 +1,4 @@
 #!/bin/bash
-# llama.sh – auto-create .venv and run .py files or install any pip package
-
 set -euo pipefail
 
 VENV_DIR=".venv"
@@ -81,10 +79,14 @@ main() {
         return 0
     fi
 
-    local packages=("$first_arg" "$@")
-    echo "Installing packages: ${packages[*]}"
-    run_in_venv "$VENV_PYTHON" -m pip install --upgrade "${packages[@]}"
-    echo "Packages installed. venv deactivated."
+    if [[ "$first_arg" == "install" ]]; then
+        shift
+        install_packages "$@"
+        return 0
+    fi
+
+    echo "Usage: $0 [script.py | -m module | install package1 package2 ...]"
+    return 1
 }
 
 [[ ! -x "$0" ]] && chmod +x "$0" 2>/dev/null || true
